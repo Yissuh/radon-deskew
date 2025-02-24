@@ -1,3 +1,5 @@
+#pip install numpy pillow scikit-image scipy
+
 import time
 from skimage.transform import radon
 from skimage.filters import threshold_otsu
@@ -48,11 +50,9 @@ def detect_text_orientation(image_array):
 
 def rotate_and_expand(image, angle):
     """Rotate an image while expanding the canvas to fit the rotated content."""
-    image = image.convert("RGBA")
-    rotated_image = image.rotate(angle, expand=True, resample=Image.BICUBIC)
-    background = Image.new("RGB", rotated_image.size, (255, 255, 255))
-    background.paste(rotated_image, (0, 0), rotated_image)
-    return background
+    image = image.convert("RGBA")  # Ensure image has an alpha channel
+    return image.rotate(angle, expand=True, resample=Image.BICUBIC)
+    
 
 def deskew_and_correct_orientation(frame):
     """Process, rotate, and correct text orientation in an image frame."""
@@ -72,22 +72,21 @@ def deskew_and_correct_orientation(frame):
     return corrected_image
 
 
-# import cv2
-# from PIL import Image
+import cv2
+from PIL import Image
 
-# # # Load image using OpenCV
-# # image_path = "sample_images/sample1.jpg"
-# # cv_frame = cv2.imread(image_path)  # This loads as a NumPy array in BGR format
+# # Load image using OpenCV
+image_path = "sample_images/sample12.jpg"
+cv_frame = cv2.imread(image_path)  # This loads as a NumPy array in BGR format
 
-# # Convert OpenCV BGR to RGB (PIL uses RGB)
-# cv_frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+# Convert OpenCV BGR to RGB (PIL uses RGB)
+cv_frame_rgba = cv2.cvtColor(cv_frame, cv2.COLOR_BGRA2RGBA) if cv_frame.shape[-1] == 4 else cv2.cvtColor(cv_frame, cv2.COLOR_BGR2RGBA)
+# Convert NumPy array to PIL Image
+frame = Image.fromarray(cv_frame_rgba)
 
-# # Convert NumPy array to PIL Image
-# frame = Image.fromarray(cv_frame_rgb)
+# Now you can use `frame` in deskew_and_correct_orientation()
+processed_image = deskew_and_correct_orientation(frame)
 
-# # Now you can use `frame` in deskew_and_correct_orientation()
-# processed_image = deskew_and_correct_orientation(frame)
-
-# # Show or save the processed image
-# processed_image.show()
-# # processed_image.save("output.jpg")
+# Show or save the processed image
+processed_image.show()
+processed_image.save("output.png")
